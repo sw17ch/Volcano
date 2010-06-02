@@ -1,5 +1,7 @@
 module Main where
 
+import Data.List
+import Data.Maybe
 import Language.Haskell.Exts
 import Text.Show.Pretty
 import Data.Generics.Uniplate hiding (universe)
@@ -13,11 +15,15 @@ main = do
         ParseOk m -> useModule m
         _ -> error "No Parse"
 
--- Ment to represent (FunBind,TypeSig)
-type FunPair = (Decl,Decl)
+-- Ment to represent (Bind,Type)
+type FunPair = (Decl, Type)
 
 useModule (Module sl name prags warn exports imports decls)
-    = putStrLn $ ppShow prims
+    = do
+        putStrLn "Undefined:"
+        putStrLn $ ppShow $ mkPairs undefs
+        putStrLn "\nPrimitives:"
+        putStrLn $ ppShow $ mkPairs prims
     where
         typesigs = [t | t@(TypeSig _ _ _)          <- decls]
         dats     = [d | d@(DataDecl _ _ _ _ _ _ _) <- decls]
@@ -26,6 +32,9 @@ useModule (Module sl name prags warn exports imports decls)
         binds    = funbinds ++ patbinds
         undefs   = filter isUndef binds
         prims    = filter (not . isUndef) binds
+
+        -- Pairs defs with types found in type signatures
+        mkPairs ds = zip ds $ map ((findType typesigs) . declName) ds
 
 isUndef d =
     case d of
@@ -36,3 +45,22 @@ isUndef d =
         chk r = case r of
                     (Var (UnQual (Ident "undefined"))) -> True
                     _ -> False
+
+
+-- Expects a list of type signatures.
+findType :: [Decl] -> String -> Type
+findType ts n = case find (hasName n) ts of
+                    Just (TypeSig _ _ t) -> t
+                    Nothing -> error $ "Unable to find a type for " ++ n
+    where ts' = [t | t@(TypeSig _ _ _) <- ts]
+          hasName n (TypeSig _ ns _) = (Ident n) `elem` ns
+
+declName :: Decl -> String
+declName (PatBind _ (PVar (Ident n)) _ _ _) = n
+declName (FunBind ms) = let getN (Match _ (Ident n) _ _ _ _) = n
+                        in  head (map getN ms) -- I think the name will always be the same
+
+matchBind :: [Decl] -> Decl -> FunPair
+matchBind typesigs bind = let bn = declName bind
+                              ts = findType typesigs bn
+                          in (bind,ts)
