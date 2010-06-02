@@ -4,7 +4,7 @@ data List a = Cons a (List a) | Nil
     deriving (Show)
 
 sumList :: List Integer -> Integer
-sumList = undefined -- must be unguarded identifier of undefined
+sumList lst = undefined -- must be unguarded identifier of undefined
 
 add :: Integer -> Integer -> Integer
 add = (+)
