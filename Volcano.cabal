@@ -1,0 +1,22 @@
+Name: Volcano
+Synopsis: Inverse QuickCheck
+Description: Generate functions from specifications.
+Version: 0.0.1
+License: BSD3
+License-File: LICENSE
+Author: John Van Enk <vanenkj@gmail.com>
+Maintainer: John Van Enk <vanenkj@gmail.com>
+Stability: experimental
+Category: Testing
+Cabal-Version: >= 1.6
+Build-Type: Simple
+Package-URL: http://github.com/sw17ch/Volcano
+
+Library
+    Build-Depends: base >= 4 && < 5
+
+    Exposed-Modules:
+        Test.Volcano
+
+    ghc-options:        -Wall
+    hs-source-dirs:     src
